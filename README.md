@@ -16,11 +16,11 @@ Contents:
 
 ## Spatial Temporal Visualisation:
 
-![](map-time-aridity.gif)
-![](map-time-runoff.gif)
-![](map-time-precipitation.gif)
-![](map-time-temperature.gif)
-![](map-time-PET.gif)
+![](animations/map-time-aridity.gif)
+![](animations/map-time-runoff.gif)
+![](animations/map-time-precipitation.gif)
+![](animations/map-time-temperature.gif)
+![](animations/map-time-PET.gif)
 
 Cite:
 If you find this code useful in your research, please, consider citing our paper: https://www.mdpi.com/journal/atmosphere/special_issues/Hydrometeorology
