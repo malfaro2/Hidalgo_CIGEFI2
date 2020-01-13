@@ -6,13 +6,15 @@ Alfaro-Córdoba M, Hidalgo, H, Alfaro, E (2019) Aridity Trends in Central Americ
 
 Contents:
 
-[Data]()
+[Data](0.read_data.R)
 
-[Code to read the data]()
+[Code to read the data](0.read_data.R)
 
-[Descriptives]()
+[Descriptives](1.descriptive.R)
 
-[Analysis]()
+[Animations](1.animate.R)
+
+[Analysis](2.analysis.R)
 
 ## Spatial Temporal Visualisation:
 
