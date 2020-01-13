@@ -2,10 +2,10 @@
 
 source(file="0.packages.R")
 source(file="0.functions.R")
-load(file="datos/data.Rdata")
-estaciones <- read.table("datos/latlon_1970_1999.txt", header=T)
-
-names(estaciones) <- c("station","lat","lon")
+load(file="data/data.Rdata")
+estaciones <- read.table("data/datos_1970_1999/latlon_1970_1999.txt", header=F)
+estaciones$station <- 1:199
+names(estaciones) <- c("lat","lon","station")
 estaciones$station <- factor(estaciones$station, levels=c(1:199))
 meteo <- dat
 map1 <- rnaturalearth::ne_states(
@@ -207,5 +207,5 @@ get.maps_descriptives(trends)
 
 ## Save data for analysis:
 
-save(trends, file="datos/trends.Rdata")
-save(meteo,estaciones,data.esco.m, file="datos/data_for_regression.Rdata")
+save(trends, file="data/trends.Rdata")
+save(meteo,estaciones,data.esco.m, file="data/data_for_regression.Rdata")

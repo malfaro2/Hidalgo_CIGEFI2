@@ -192,3 +192,105 @@ get.map_descriptives<-function(trend){
 }
 
 
+c0<-fitmodel.1$psill[1]
+ce<-fitmodel.1$psill[2]
+ae<-fitmodel.1$range[2]
+
+
+## Construct the var-cov matrix
+get.var.cov<-function(c0,ce,ae){
+  # Define distance matrix of zeros
+  dist.mat <- matrix(0,199,199)
+  # Fill in distances between each sampling point
+  #dist.mat<-distances(data.frame(trends[,c("lat","lon")]))
+  for (i in 1:199) {
+    dist.mat[i,] <- sqrt( (trends$lat-trends$lat[i])^2 +
+                            (trends$lon-trends$lon[i])^2 )
+  }
+  # Define elements of variance-covariance matrix for
+  # exponential covariance function
+  # Initialize to zeros
+  exp.sigma <- matrix(0,199,199)
+  # set parameters
+  exp.sigma <- c0+ce*exp(-dist.mat^2/ae^2)
+  return(exp.sigma)
+}
+
+## Null hypothesis assuming dependence
+
+get.sig<-function(sigma.hat,y){
+  set.seed(18)
+null.hyp<-sapply(1:5000,function(i)
+mvrnorm(n = 1, rep(0,199), sigma.hat))
+qq<-apply(null.hyp,1,function(x)quantile(x,c(0.025,0.975)))
+matplot(t(qq),type='l')
+aa<-mapply(function(i)(findInterval(y[i],qq[,i])!=1),1:199)
+print(apply(qq,1,mean))
+return(aa)
+}
+
+## Null hypothesis assuming dependence
+
+get.sig.ind<-function(y){
+  set.seed(18)
+  null.hyp<-sapply(1:5000,function(i)
+    rnorm(n = 199, 0, sqrt(var(y))))
+  qq<-apply(null.hyp,1,function(x)quantile(x,c(0.025,0.975)))
+  matplot(t(qq),type='l')
+  aa<-mapply(function(i)(findInterval(y[i],qq[,i])!=1),1:199)
+  print(apply(qq,1,mean))
+  return(aa)
+}
+
+
+mapping <- function(map1,data){
+  map_coef<-data %>% ggplot(aes(lon, lat)) +
+    geom_sf(data = map1, inherit.aes = FALSE) +
+    coord_sf(ylim = c(7,18), xlim = c(-78, -93)) +
+    geom_point(aes(fill = data$sig_coef, 
+                   size = data$sig_coef), 
+               shape = 21) +
+    scale_fill_viridis(name="Trend",discrete=FALSE) +
+    theme_ipsum() +
+    theme(
+      panel.spacing = unit(0.1, "lines"),
+      strip.text.x = element_text(size = 8)) +
+    scale_size_area(max_size = 6, guide = "none") +
+    labs(x = "Lon", y = "Lat") 
+  return(map_coef)
+}
+
+mapping.dep <- function(map1,data){
+  map_coef<-data %>% ggplot(aes(lon, lat)) +
+    geom_sf(data = map1, inherit.aes = FALSE) +
+    coord_sf(ylim = c(7,18), xlim = c(-78, -93)) +
+    geom_point(aes(fill = data$trend.sig, 
+                   size = data$trend.sig), 
+                   shape = 21) +
+    scale_fill_viridis(name="Trend",discrete=FALSE) +
+    theme_ipsum() +
+    theme(
+      panel.spacing = unit(0.1, "lines"),
+      strip.text.x = element_text(size = 8)) +
+    scale_size_area(max_size = 6, guide = "none") +
+    labs(x = "Lon", y = "Lat") 
+  return(map_coef)
+}
+
+mapping.ind <- function(map1,data){
+  map_coef<-data %>% ggplot(aes(lon, lat)) +
+    geom_sf(data = map1, inherit.aes = FALSE) +
+    coord_sf(ylim = c(7,18), xlim = c(-78, -93)) +
+    geom_point(aes(fill = data$trend.sig.ind, 
+                   size = data$trend.sig.ind), 
+                   shape = 21) +
+    scale_fill_viridis(name="Trend",discrete=FALSE) +
+    theme_ipsum() +
+    theme(
+      panel.spacing = unit(0.1, "lines"),
+      strip.text.x = element_text(size = 8)) +
+    scale_size_area(max_size = 6, guide = "none") +
+    labs(x = "Lon", y = "Lat") 
+  return(map_coef)
+}
+

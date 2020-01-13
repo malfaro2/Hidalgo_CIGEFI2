@@ -1,6 +1,9 @@
 source(file="0.packages.R")
-load(file="datos/data.Rdata")
-estaciones <- read.table("datos/latlon_1970_1999.txt", header=T)
+load(file="data/data.Rdata")
+estaciones <- read.table("data/datos_1970_1999/latlon_1970_1999.txt", header=F)
+estaciones$station <- 1:199
+names(estaciones) <- c("lat","lon","station")
+estaciones$station <- factor(estaciones$station, levels=c(1:199))
 meteo <- dat
 map <- rnaturalearth::ne_states(country = c("guatemala", "honduras", "el salvador", "panama", "nicaragua", "costa rica", "belize"), returnclass = "sf")
 

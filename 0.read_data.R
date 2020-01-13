@@ -3,8 +3,11 @@ library(tidyverse)
 library(fs)
 library(here)
 
-data_dir <- "datos/"
-latlon<-read.table("datos/latlon_1970_1999.txt", header=T)[,-1]
+data_dir <- "data/datos_1970_1999"
+latlon<-read.table("data/datos_1970_1999/latlon_1970_1999.txt")
+latlon$station <- 1:199
+names(latlon) <- c("lat","lon","station")
+latlon$station <- factor(latlon$station, levels=c(1:199))
 
 dat <- data_dir %>% 
         dir_ls(regexp = "\\.mat$") %>% 
@@ -21,7 +24,7 @@ glimpse(dat)
 
 ## Add runoff:
 
-load("datos/hidro.Rdata")
+load("data/hidro.Rdata")
 data.esco <- sapply(1:199, function(i)apply(fs[[i]],1,median))
 data.esco <- as_tibble(data.esco)
 data.esco.m <- data.esco %>% 
@@ -30,5 +33,5 @@ pivot_longer(-year,names_to = "station", values_to = "runoff") %>%
         mutate(station=as.double(substr(station, 2, 100)))  
        
 
-save(dat,data.esco.m, file="datos/data.Rdata")
+save(dat,data.esco.m, file="data/data.Rdata")
 

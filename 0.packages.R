@@ -2,6 +2,7 @@
 # This example requires packages forcats, readxl, and rmarkdown,
 # but you do not need to load them here.
 
+library(distances)
 library(drake)
 library(dplyr)
 library(tidyverse)
@@ -27,3 +28,4 @@ library(hrbrthemes)
 library(viridis)
 library(gridExtra)
 library(cowplot)
+library(boot)
