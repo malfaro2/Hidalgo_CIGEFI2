@@ -192,25 +192,20 @@ get.map_descriptives<-function(trend){
 }
 
 
-c0<-fitmodel.1$psill[1]
-ce<-fitmodel.1$psill[2]
-ae<-fitmodel.1$range[2]
-
-
 ## Construct the var-cov matrix
 get.var.cov<-function(c0,ce,ae){
   # Define distance matrix of zeros
-  dist.mat <- matrix(0,199,199)
+  dist.mat <- matrix(0,n,n)
   # Fill in distances between each sampling point
   #dist.mat<-distances(data.frame(trends[,c("lat","lon")]))
-  for (i in 1:199) {
+  for (i in 1:n) {
     dist.mat[i,] <- sqrt( (trends$lat-trends$lat[i])^2 +
                             (trends$lon-trends$lon[i])^2 )
   }
   # Define elements of variance-covariance matrix for
   # exponential covariance function
   # Initialize to zeros
-  exp.sigma <- matrix(0,199,199)
+  exp.sigma <- matrix(0,n,n)
   # set parameters
   exp.sigma <- c0+ce*exp(-dist.mat^2/ae^2)
   return(exp.sigma)
@@ -221,12 +216,11 @@ get.var.cov<-function(c0,ce,ae){
 get.sig<-function(sigma.hat,y){
   set.seed(18)
 null.hyp<-sapply(1:5000,function(i)
-mvrnorm(n = 1, rep(0,199), sigma.hat))
+mvrnorm(n = 1, rep(0,n), sigma.hat))
 qq<-apply(null.hyp,1,function(x)quantile(x,c(0.025,0.975)))
-matplot(t(qq),type='l')
-aa<-mapply(function(i)(findInterval(y[i],qq[,i])!=1),1:199)
-print(apply(qq,1,mean))
-return(aa)
+interval<-apply(qq,1,mean)
+aa<-mapply(function(i)(findInterval(y[i],interval)!=1),1:n0)
+return(list(aa,interval))
 }
 
 ## Null hypothesis assuming dependence
@@ -234,12 +228,11 @@ return(aa)
 get.sig.ind<-function(y){
   set.seed(18)
   null.hyp<-sapply(1:5000,function(i)
-    rnorm(n = 199, 0, sqrt(var(y))))
+    rnorm(n = n, 0, sqrt(var(y))))
   qq<-apply(null.hyp,1,function(x)quantile(x,c(0.025,0.975)))
-  matplot(t(qq),type='l')
-  aa<-mapply(function(i)(findInterval(y[i],qq[,i])!=1),1:199)
-  print(apply(qq,1,mean))
-  return(aa)
+  interval<-apply(qq,1,mean)
+  aa<-mapply(function(i)(findInterval(y[i],interval)!=1),1:n0)
+  return(list(aa,interval))
 }
 
 
@@ -250,13 +243,14 @@ mapping <- function(map1,data){
     geom_point(aes(fill = data$sig_coef, 
                    size = data$sig_coef), 
                shape = 21) +
-    scale_fill_viridis(name="Trend",discrete=FALSE) +
+    scale_fill_viridis(name="Trend",discrete=FALSE,
+                       limits=range(data$tr)) +
     theme_ipsum() +
     theme(
       panel.spacing = unit(0.1, "lines"),
       strip.text.x = element_text(size = 8)) +
     scale_size_area(max_size = 6, guide = "none") +
-    labs(x = "Lon", y = "Lat") 
+    labs(x = "Lon", y = "Lat")
   return(map_coef)
 }
 
@@ -267,7 +261,8 @@ mapping.dep <- function(map1,data){
     geom_point(aes(fill = data$trend.sig, 
                    size = data$trend.sig), 
                    shape = 21) +
-    scale_fill_viridis(name="Trend",discrete=FALSE) +
+    scale_fill_viridis(name="Trend",discrete=FALSE,
+                       limits=range(data$tr)) +
     theme_ipsum() +
     theme(
       panel.spacing = unit(0.1, "lines"),
@@ -284,7 +279,8 @@ mapping.ind <- function(map1,data){
     geom_point(aes(fill = data$trend.sig.ind, 
                    size = data$trend.sig.ind), 
                    shape = 21) +
-    scale_fill_viridis(name="Trend",discrete=FALSE) +
+    scale_fill_viridis(name="Trend",discrete=FALSE,
+                       limits=range(data$tr)) +
     theme_ipsum() +
     theme(
       panel.spacing = unit(0.1, "lines"),
@@ -294,3 +290,67 @@ mapping.ind <- function(map1,data){
   return(map_coef)
 }
 
+get_dots <- function(data, units, title,tt,outliers){
+  theme_set(theme_classic())
+plotA <- ggplot(data, aes(x=station, y=coef)) + 
+  geom_point(col="cyan4", size=1) +   # Draw points
+  geom_segment(aes(x=station, 
+                   xend=station, 
+                   y=min(coef), 
+                   yend=max(coef)), 
+               linetype="dashed", 
+               size=0.01) +   # Draw dashed lines
+  geom_hline(yintercept = 0, linetype="dashed",size=0.5) +
+  labs(title=tt, 
+       #subtitle="Central American Stations", 
+       caption=units,
+       y=title) +  
+  theme(axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank()) +
+  theme(axis.title.x=element_text()) +
+  coord_flip()+ geom_point(data=outliers,
+          aes(x=station, y=coef), color="lightpink3")
+return(plotA)
+}
+
+plotCI <- function(data_CI,interval_ind,interval_dep){
+  gg <- ggplot(data_CI, 
+               aes(x=li,xend=ls, y=station, 
+                   color=trend.sig,group=station)) + 
+    geom_point(aes(x=tr, y=station), color="black")+
+    geom_dumbbell( ) + 
+    labs(x=NULL, 
+         y=NULL) +
+    geom_vline(xintercept = interval_dep, 
+               color = "steelblue4", linetype="dotted")+
+    geom_vline(xintercept = interval_ind, 
+               color = "white", linetype="dotted")+
+    geom_vline(xintercept = 0, 
+               color = "black")+
+    theme(plot.title = element_text(hjust=0.5, face="bold"),
+          plot.background=element_rect(fill="#f7f7f7"),
+          panel.background=element_rect(fill="#f7f7f7"),
+          #panel.grid.minor=element_blank(),
+          #panel.grid.major.y=element_blank(),
+          #panel.grid.major.x=element_line(),
+          axis.ticks=element_blank(),
+          legend.position="none",
+          panel.border=element_blank(),
+          axis.text.y=element_blank(),
+          axis.ticks.y=element_blank())
+  return(gg)
+}
+
+boot_CI <- function(data,formula){
+  est <- function(formula, data, indices) {
+    d <- data[indices,] # allows boot to select sample
+    fit <- lm(formula, data=d)
+    return(summary(fit)$coef[,"Estimate"])
+  }
+  # bootstrapping with 1000 replications
+  results <- boot(data=data, statistic=est,
+                  R=1000, formula=formula)
+  aa<-boot.ci(results, type="bca")
+  return(list(linf=aa$bca[c(4)],lsup=aa$bca[c(5)]))
+}
