@@ -237,11 +237,13 @@ get.sig.ind<-function(y){
 
 
 mapping <- function(map1,data){
-  map_coef<-data %>% ggplot(aes(lon, lat)) +
+  map_coef<-data %>% 
+    filter(mk<0.05) %>% 
+    ggplot(aes(lon, lat)) +
     geom_sf(data = map1, inherit.aes = FALSE) +
     coord_sf(ylim = c(7,18), xlim = c(-78, -93)) +
-    geom_point(aes(fill = data$sig_coef, 
-                   size = data$sig_coef), 
+    geom_point(aes(fill = sig_coef, 
+                   size = sig_coef), 
                shape = 21) +
     scale_fill_viridis(name="Trend",discrete=FALSE,
                        limits=range(data$tr)) +
@@ -254,20 +256,21 @@ mapping <- function(map1,data){
   return(map_coef)
 }
 
-mapping.dep <- function(map1,data){
+mapping.dep <- function(map1,data,neg){
   map_coef<-data %>% ggplot(aes(lon, lat)) +
     geom_sf(data = map1, inherit.aes = FALSE) +
     coord_sf(ylim = c(7,18), xlim = c(-78, -93)) +
     geom_point(aes(fill = data$trend.sig, 
-                   size = data$trend.sig), 
-                   shape = 21) +
+                   size = neg*data$trend.sig), 
+                   shape = 21, na.rm=TRUE ) +
     scale_fill_viridis(name="Trend",discrete=FALSE,
                        limits=range(data$tr)) +
     theme_ipsum() +
-    theme(
+    theme(#plot.background=element_rect(fill="#f7f7f7"),
+      #panel.background=element_rect(fill="#f7f7f7"),
       panel.spacing = unit(0.1, "lines"),
       strip.text.x = element_text(size = 8)) +
-    scale_size_area(max_size = 6, guide = "none") +
+      scale_size_area(guide = "none") +
     labs(x = "Lon", y = "Lat") 
   return(map_coef)
 }
@@ -352,5 +355,12 @@ boot_CI <- function(data,formula){
   results <- boot(data=data, statistic=est,
                   R=1000, formula=formula)
   aa<-boot.ci(results, type="bca")
+  return(list(linf=aa$bca[c(4)],lsup=aa$bca[c(5)]))
+}
+
+mK_CI <- function(data,formula){
+datos <- ts(data)
+MannKendall(datos)
+  
   return(list(linf=aa$bca[c(4)],lsup=aa$bca[c(5)]))
 }

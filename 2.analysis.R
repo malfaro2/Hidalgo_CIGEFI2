@@ -212,10 +212,10 @@ trends.sig <- trend_WO %>%
 maps0 <- trends.sig %>% 
   split(.$variable) 
 
-map.t.ar<-mapping(map1,maps0$ari)
-map.t.pm<-mapping(map1,maps0$pm)
-map.t.pet<-mapping(map1,maps0$pet)
-map.t.ro<-mapping(map1,maps0$ro)
+map.mk.ar<-mapping(map1,maps0$ari)
+map.mk.pm<-mapping(map1,maps0$pm)
+map.mk.pet<-mapping(map1,maps0$pet)
+map.mk.ro<-mapping(map1,maps0$ro)
 map.t.tem<-mapping(map1,maps0$temp)
 
 ## Second, correct by the spatial dependency:
@@ -277,13 +277,11 @@ trends.sig2 <- trend_WO %>%
 maps <- trends.sig2 %>% 
   split(.$variable) 
 
-map.cor.ar<-mapping.dep(map1,maps$ari)
-## ggplot wont desplay 10 points, so I am adding one.
-
-map.cor.ro<-mapping.dep(map1,maps$ro)
-map.cor.pet<-mapping.dep(map1,maps$pet)
-map.cor.tem<-mapping.dep(map1,maps$temp)
-map.cor.pm<-mapping.dep(map1,maps$pm)
+map.cor.ar<-mapping.dep(map1,maps$ari,-1)
+map.cor.ro<-mapping.dep(map1,maps$ro,1)
+map.cor.pet<-mapping.dep(map1,maps$pet,1)
+map.cor.tem<-mapping.dep(map1,maps$temp,1)
+map.cor.pm<-mapping.dep(map1,maps$pm,-1)
 
 map.ind.ar<-mapping.ind(map1,maps$ari)
 map.ind.pm<-mapping.ind(map1,maps$pm)

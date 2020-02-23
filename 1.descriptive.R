@@ -106,6 +106,7 @@ e<-meteo %>%
   labs(caption="units: Celsius")
 
 ## Trends - Only calculates trends
+## 
 
 ###### variable 1: pmensual #######
 trend.pm.c <- meteo %>% arrange(station) %>% 
@@ -116,12 +117,14 @@ trend.pm.c <- meteo %>% arrange(station) %>%
                 tavg.c,ari.c, pet.c, ro.c, prec.c)) %>% 
   mutate(coef = purrr::map(data, ~ 
                 lm(prec.c ~ year-1,data = .)$coef),
-         ci =   purrr::map(data, ~ 
-                boot_CI(.,prec.c~year-1))) %>% 
-  tidyr::unnest(coef) %>%  tidyr::unnest_wider(ci) %>% 
-  dplyr::select(station,coef,linf,lsup) %>% 
+         ci.b =   purrr::map(data, ~ 
+                boot_CI(.,prec.c~year-1)),
+         p.mk =  purrr::map(data, ~
+  as.numeric(MannKendall(ts(.$prec.c))$sl))) %>% 
+  tidyr::unnest(coef) %>%  tidyr::unnest_wider(ci.b) %>% 
+  tidyr::unnest(p.mk) %>% 
+  dplyr::select(station,coef,linf,lsup,p.mk) %>% 
   left_join(estaciones, by=c("station"))
-
 
 ###### variable 2: PET #######
 trend.pet.c <-meteo %>% arrange(station) %>% 
@@ -132,10 +135,13 @@ trend.pet.c <-meteo %>% arrange(station) %>%
                 tavg.c,ari.c, pet.c, ro.c, prec.c)) %>% 
   mutate(coef = purrr::map(data, ~ 
         lm(pet.c ~ year-1,data = .)$coef),
-        ci =   purrr::map(data, ~ 
-        boot_CI(.,pet.c~year-1))) %>% 
-  tidyr::unnest(coef) %>%  tidyr::unnest_wider(ci) %>% 
-  dplyr::select(station,coef,linf,lsup) %>% 
+        ci.b =   purrr::map(data, ~ 
+                boot_CI(.,pet.c~year-1)),
+        p.mk =  purrr::map(data, ~
+        as.numeric(MannKendall(ts(.$pet.c))$sl))) %>% 
+  tidyr::unnest(coef) %>%  tidyr::unnest_wider(ci.b) %>% 
+  tidyr::unnest(p.mk) %>% 
+  dplyr::select(station,coef,linf,lsup,p.mk) %>% 
   left_join(estaciones, by=c("station"))
 
 ###### variable 3: aridity #######
@@ -147,10 +153,13 @@ trend.ari.c <-meteo %>% arrange(station) %>%
                 tavg.c,ari.c, pet.c, ro.c, prec.c)) %>% 
   mutate(coef = purrr::map(data, ~ 
             lm(ari.c ~ year-1,data = .)$coef),
-         ci =   purrr::map(data, ~ 
-            boot_CI(.,ari.c~year-1))) %>% 
-  tidyr::unnest(coef) %>%  tidyr::unnest_wider(ci) %>% 
-  dplyr::select(station,coef,linf,lsup) %>% 
+         ci.b =   purrr::map(data, ~ 
+         boot_CI(.,ari.c~year-1)),
+         p.mk =  purrr::map(data, ~
+        as.numeric(MannKendall(ts(.$ari.c))$sl))) %>% 
+  tidyr::unnest(coef) %>%  tidyr::unnest_wider(ci.b) %>% 
+  tidyr::unnest(p.mk) %>% 
+  dplyr::select(station,coef,linf,lsup,p.mk) %>% 
   left_join(estaciones, by=c("station"))
 
 ###### variable 4: tavg #######
@@ -162,10 +171,13 @@ trend.temp.c <-meteo %>% arrange(station) %>%
                 tavg.c,ari.c, pet.c, ro.c, prec.c)) %>% 
   mutate(coef = purrr::map(data, ~ 
                  lm(tavg.c ~ year-1,data = .)$coef),
-         ci =   purrr::map(data, ~ 
-                boot_CI(.,tavg.c~year-1))) %>% 
-  tidyr::unnest(coef) %>%  tidyr::unnest_wider(ci) %>% 
-  dplyr::select(station,coef,linf,lsup) %>% 
+         ci.b =   purrr::map(data, ~ 
+          boot_CI(.,tavg.c~year-1)),
+         p.mk =  purrr::map(data, ~
+          as.numeric(MannKendall(ts(.$tavg.c))$sl))) %>% 
+  tidyr::unnest(coef) %>%  tidyr::unnest_wider(ci.b) %>% 
+  tidyr::unnest(p.mk) %>% 
+  dplyr::select(station,coef,linf,lsup,p.mk) %>% 
   left_join(estaciones, by=c("station"))
 
 ###### variable 5: runoff #######
@@ -177,10 +189,13 @@ trend.ro.c <-meteo %>% arrange(station) %>%
                 tavg.c,ari.c, pet.c, ro.c, prec.c)) %>% 
   mutate(coef = purrr::map(data, ~ 
                 lm(ro.c ~ year-1,data = .)$coef),
-         ci =   purrr::map(data, ~ 
-                boot_CI(.,ro.c~year-1))) %>% 
-  tidyr::unnest(coef) %>%  tidyr::unnest_wider(ci) %>% 
-  dplyr::select(station,coef,linf,lsup) %>% 
+         ci.b =   purrr::map(data, ~ 
+             boot_CI(.,ro.c~year-1)),
+         p.mk =  purrr::map(data, ~
+             as.numeric(MannKendall(ts(.$ro.c))$sl))) %>% 
+  tidyr::unnest(coef) %>%  tidyr::unnest_wider(ci.b) %>% 
+  tidyr::unnest(p.mk) %>% 
+  dplyr::select(station,coef,linf,lsup,p.mk) %>% 
   left_join(estaciones, by=c("station"))
 
 ## Exploratories (not included in the paper)
@@ -246,12 +261,17 @@ trends <- trend.pm.c %>%
             "lat"="lat","lon"="lon"))
 
 names(trends) <- c("station",
-      "trend.pm.c","li.trend.pm.c","ls.trend.pm.c",
+      "trend.pm.c","li.trend.pm.c",
+      "ls.trend.pm.c","mk.trend.pm.c",
                    "lat","lon",
-      "trend.pet.c","li.trend.pet.c","ls.trend.pet.c",
-      "trend.ari.c","li.trend.ari.c","ls.trend.ari.c",
-      "trend.temp.c","li.trend.temp.c","ls.trend.temp.c",
-      "trend.ro.c","li.trend.ro.c","ls.trend.ro.c")
+      "trend.pet.c","li.trend.pet.c",
+      "ls.trend.pet.c","mk.trend.pet.c",
+      "trend.ari.c","li.trend.ari.c",
+      "ls.trend.ari.c","mk.trend.ari.c",
+      "trend.temp.c","li.trend.temp.c",
+      "ls.trend.temp.c","mk.trend.temp.c",
+      "trend.ro.c","li.trend.ro.c",
+      "ls.trend.ro.c","mk.trend.ro.c")
 
 # Figures and tables for the paper:
 
