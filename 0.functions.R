@@ -245,7 +245,7 @@ mapping <- function(map1,data){
     geom_point(aes(fill = sig_coef, 
                    size = sig_coef), 
                shape = 21) +
-    scale_fill_viridis(name="Trend",discrete=FALSE,
+    scale_fill_gradient2(name="Trend",mid="white",
                        limits=range(data$tr)) +
     theme_ipsum() +
     theme(
@@ -263,8 +263,8 @@ mapping.dep <- function(map1,data,neg){
     geom_point(aes(fill = data$trend.sig, 
                    size = neg*data$trend.sig), 
                    shape = 21, na.rm=TRUE ) +
-    scale_fill_viridis(name="Trend",discrete=FALSE,
-                       limits=range(data$tr)) +
+    scale_fill_gradient2(name="Trend",mid="white",
+                         limits=range(data$tr)) +
     theme_ipsum() +
     theme(#plot.background=element_rect(fill="#f7f7f7"),
       #panel.background=element_rect(fill="#f7f7f7"),
@@ -282,8 +282,8 @@ mapping.ind <- function(map1,data){
     geom_point(aes(fill = data$trend.sig.ind, 
                    size = data$trend.sig.ind), 
                    shape = 21) +
-    scale_fill_viridis(name="Trend",discrete=FALSE,
-                       limits=range(data$tr)) +
+    scale_fill_gradient2(name="Trend",mid="white",
+                         limits=range(data$tr)) +
     theme_ipsum() +
     theme(
       panel.spacing = unit(0.1, "lines"),

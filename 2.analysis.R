@@ -63,7 +63,10 @@ print(xyplot(gamma ~ dist, var, pch = 3,
 var=variogram(trends$trend.pet.c~1, data=trends)
 plot(var)
 varmodel <- vgm(psill=0.005,model="Gau",5,nugget=0)
-plot(var, model=varmodel) 
+varmodel2 <- vgm(psill=0.005,model="Exp",5,nugget=0)
+par(mfrow=c(1,2))
+plot(var, model=varmodel, main="PET trends - Gaussian")
+plot(var, model=varmodel2, main="PET trends - Exponential")
 fitmodel.2 <- fit.variogram(var, model=varmodel, fit.ranges=FALSE)
 mean(trends$trend.pet.c)
 fitmodel.2$psill[1]/fitmodel.2$psill[2]
@@ -87,9 +90,11 @@ print(xyplot(gamma ~ dist, var, pch = 3,
                }
                panel.xyplot(x, y, ...)
              },
+             
              ylim = c(0, 0.004), xlab = 'distance', 
              ylab = 'semivariance'
 ))
+plot(var, model=varmodel, add=TRUE) 
 
 
 ###### variable 3: precipitation #######
@@ -193,6 +198,7 @@ print(xyplot(gamma ~ dist, var, pch = 3, type = 'b',
 
 ## t-test wrongly assuming independence (temporal and spatial)
 
+set.seed(1818)
 trend_WO <- as_tibble(trend_WO)
 
 trends.sig <- trend_WO %>% 
@@ -216,7 +222,7 @@ map.mk.ar<-mapping(map1,maps0$ari)
 map.mk.pm<-mapping(map1,maps0$pm)
 map.mk.pet<-mapping(map1,maps0$pet)
 map.mk.ro<-mapping(map1,maps0$ro)
-map.t.tem<-mapping(map1,maps0$temp)
+map.mk.tem<-mapping(map1,maps0$temp)
 
 ## Second, correct by the spatial dependency:
 
@@ -237,7 +243,7 @@ Sigma.ro<-get.var.cov(fitmodel.5$psill[1],fitmodel.5$psill[2],
 # Step 3: map those trends that have conf intervals that do 
 # not overlap with 0
 
-set.seed(1818)
+set.seed(18)
 trend.sig.pm<-get.sig(Sigma.pm,trend_WO$trend.pm.c)
 trend.sig.pet<-get.sig(Sigma.pet,trend_WO$trend.pet.c)
 trend.sig.ari<-get.sig(Sigma.ari,trend_WO$trend.ari.c)
@@ -288,7 +294,6 @@ map.ind.pm<-mapping.ind(map1,maps$pm)
 map.ind.pet<-mapping.ind(map1,maps$pet)
 map.ind.ro<-mapping.ind(map1,maps$ro)
 map.ind.tem<-mapping.ind(map1,maps$temp)
-
 
 data_CI <- maps0$ari
 interval_ind <- trend.sig.ari.ind[[2]]
